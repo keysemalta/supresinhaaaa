@@ -1,0 +1,902 @@
+/* =========================================================
+   0) FONTES DO JOGO
+   Duas fontes são usadas (o logo é uma imagem):
+     Morpheus       → títulos (nome da quest, "Quest Objectives", "Rewards"...)
+     Friz Quadrata  → textos, botões, tooltips
+   Cada @font-face tem DUAS origens:
+     local("Nome")    → usa a fonte INSTALADA no computador (só funciona nele)
+     url("fonts/...") → usa o arquivo dentro da pasta do site (funciona em qualquer PC)
+   ========================================================= */
+@font-face {
+  font-family: "Morpheus";
+  src: local("Morpheus"), url("fonts/morpheus.ttf") format("truetype");
+  font-display: swap;
+}
+@font-face {
+  font-family: "Friz Quadrata";
+  src: local("Friz Quadrata Std"), local("Friz Quadrata Std Medium"), local("FrizQuadrataStd"), local("Friz Quadrata"),
+       url("fonts/friz-quadrata.otf") format("opentype");
+  font-display: swap;
+}
+
+/* =========================================================
+   1) VARIÁVEIS (mude as cores do site aqui)
+   ========================================================= */
+:root {
+  --font-title: "Morpheus", "Cinzel", serif;
+  --font-body: "Friz Quadrata", "Cormorant Garamond", serif;
+
+  --btn-red: #6e0504;       /* fundo vermelho dos botões */
+  --btn-text: #ffb667;      /* texto dos botões */
+  --parchment: #edbe79;     /* cor do pergaminho das missões e da carta */
+  --reward-bg: #99794b;     /* caixinha com o nome das recompensas */
+  --silver: #fbf4fa;        /* base prateada dos botões */
+  --frame-gold: #a8875b;    /* borda do popup, retrato, botão X e título */
+
+  --yellow: #ffd100;        /* amarelo dos rótulos do login */
+  --gold: #ffd100;
+  --gold-border: #c9a227;
+  --gold-dark: #6b5316;
+  --panel-1: #1f1812;
+  --panel-2: #120d08;
+  --ink: #3a2410;
+  --text: #f0e6d2;
+
+  --epic: #a335ee;
+  --rare: #0070dd;
+  --legendary: #ff8000;
+  --uncommon: #1eff00;
+
+  /* contorno preto das letras (estilo do jogo) */
+  --outline: -2px 0 0 #000, 2px 0 0 #000, 0 -2px 0 #000, 0 2px 0 #000,
+             -1px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000, 1px 1px 0 #000;
+}
+
+/* =========================================================
+   2) BASE + FUNDO COM VÉU (home e login)
+   ========================================================= */
+* { box-sizing: border-box; }
+html { scroll-behavior: smooth; }
+[hidden] { display: none !important; }
+
+body {
+  margin: 0;
+  background: #02030a;
+  color: var(--text);
+  font-family: var(--font-body);
+  font-weight: 400;
+  font-size: 1rem;
+  line-height: 1.6;
+}
+body.locked { overflow: hidden; }   /* sem rolagem até fazer login */
+
+h1, h2, h3, h4 { font-family: var(--font-title); font-weight: 400; }
+
+/* Imagem fixa atrás de tudo + véu escuro por cima (::after) */
+.bg {
+  position: fixed;
+  inset: 0;
+  z-index: -2;
+  background: url("assets/fundo.jpg") center / cover no-repeat;
+}
+.bg::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.5);   /* aumente/diminua o 0.5 para mudar o véu */
+}
+
+.center { text-align: center; }
+.center-text { text-align: center; }
+
+.frame {
+  background: linear-gradient(var(--panel-1), var(--panel-2));
+  border: 2px solid var(--gold-dark);
+  box-shadow: 0 0 0 2px #0a0703, 0 0 0 4px var(--gold-border), inset 0 0 30px rgba(0, 0, 0, 0.7);
+  border-radius: 4px;
+}
+
+/* =========================================================
+   3) TELAS (HOME e LOGIN) com transição suave
+   ========================================================= */
+.screen {
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+  display: grid;
+  place-items: center;
+  align-content: center;
+  gap: 1.1rem;
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+  transition: opacity 0.9s ease, visibility 0s linear 0.9s;
+}
+.screen.active {
+  opacity: 1;
+  visibility: visible;
+  pointer-events: auto;
+  transition: opacity 0.9s ease, visibility 0s;
+}
+
+.home-logo {
+  width: min(460px, 74vw);
+  height: auto;
+  filter: drop-shadow(0 8px 18px rgba(0, 0, 0, 0.8));
+}
+
+/* Botão feito com imagem (Start e Login) */
+.img-btn {
+  background: none;
+  border: 0;
+  padding: 0;
+  cursor: pointer;
+  transition: filter 0.2s, transform 0.2s;
+}
+.img-btn img { display: block; width: 100%; height: auto; }
+.img-btn:hover { filter: brightness(1.25) drop-shadow(0 0 8px rgba(255, 120, 80, 0.5)); }
+.img-btn:active { transform: translateY(2px); filter: brightness(0.9); }
+.start-btn { width: min(210px, 56vw); }
+
+/* ---------- LOGIN ---------- */
+.login-logo {
+  position: absolute;
+  top: 3vh;
+  left: 2.6vw;
+  width: clamp(120px, 9vw, 170px);
+  height: auto;
+}
+.login-form {
+  width: min(290px, 80vw);
+  text-align: center;
+}
+
+.wow-label {
+  display: block;
+  margin: 0 0 7px;
+  font-size: 1.3rem;
+  line-height: 1.2;
+  color: var(--yellow);
+  text-shadow: var(--outline);
+  cursor: default;
+}
+.wow-label.second { margin-top: 22px; }
+.wow-label.small { display: inline; margin: 0; font-size: 1.02rem; }
+
+/* Caixa de texto: moldura prateada com cantos cortados (chanfro) */
+.wow-field {
+  position: relative;
+  width: 100%;
+  height: 42px;
+  padding: 5px;
+  background: #000;
+  clip-path: polygon(8px 0, calc(100% - 8px) 0, 100% 8px, 100% calc(100% - 8px),
+                     calc(100% - 8px) 100%, 8px 100%, 0 calc(100% - 8px), 0 8px);
+}
+.wow-field::before {                       /* camada prateada */
+  content: "";
+  position: absolute;
+  inset: 2px;
+  background: linear-gradient(#f4f4f4, #a8a8a8 45%, #6f6f6f 55%, #c8c8c8);
+  clip-path: polygon(6.8px 0, calc(100% - 6.8px) 0, 100% 6.8px, 100% calc(100% - 6.8px),
+                     calc(100% - 6.8px) 100%, 6.8px 100%, 0 calc(100% - 6.8px), 0 6.8px);
+}
+.wow-field:focus-within::before {
+  background: linear-gradient(#ffe9a0, #d9b341 45%, #8a6a14 55%, #e8c860);
+}
+.wow-field input {
+  position: relative;
+  display: block;
+  width: 100%;
+  height: 100%;
+  padding: 0 12px;
+  border: 0;
+  outline: none;
+  text-align: center;
+  font-family: var(--font-body);
+  font-size: 1rem;
+  color: #e2e2e2;
+  background: #060606;
+  clip-path: polygon(5px 0, calc(100% - 5px) 0, 100% 5px, 100% calc(100% - 5px),
+                     calc(100% - 5px) 100%, 5px 100%, 0 calc(100% - 5px), 0 5px);
+}
+.wow-field input::placeholder { color: #b5b5b5; opacity: 1; }
+
+.login-btn { display: block; width: 176px; margin: 30px auto 18px; }
+
+/* "Remember Account Name" */
+.remember {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+}
+.remember input { position: absolute; opacity: 0; pointer-events: none; }
+.remember .box {
+  display: grid;
+  place-items: center;
+  width: 22px;
+  height: 22px;
+  background: #111;
+  border: 2px solid #8f8f8f;
+  border-radius: 5px;
+  box-shadow: 0 0 0 1.5px #000;
+  color: var(--yellow);
+  font-size: 0.95rem;
+  line-height: 1;
+}
+.remember input:checked + .box::after { content: "\2714"; }
+.remember input:focus-visible + .box { border-color: var(--yellow); }
+
+/* =========================================================
+   4) BOTÃO WOW EM CSS (e botão X do popup)
+   Camadas, de fora para dentro (todas com os MESMOS cantos cortados):
+     1) o próprio botão  → preto (contorno externo e filete interno)
+     2) ::after          → anel PRATEADO (um "anel" desenhado com clip-path evenodd)
+     3) ::before         → miolo VERMELHO
+   ========================================================= */
+.btn-wow,
+.qclose {
+  position: relative;
+  isolation: isolate;
+  border: 0;
+  padding: 0;
+  background: #000;
+  cursor: pointer;
+  font-family: var(--font-body);
+  color: var(--btn-text);
+  text-shadow: var(--outline);
+  line-height: 1;
+  /* contorno externo: corte de 10px nos cantos */
+  clip-path: polygon(10px 0, calc(100% - 10px) 0, 100% 10px, 100% calc(100% - 10px),
+                     calc(100% - 10px) 100%, 10px 100%, 0 calc(100% - 10px), 0 10px);
+  transition: filter 0.2s, transform 0.2s;
+}
+
+.btn-wow {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 170px;
+  height: 48px;
+  padding: 0 28px;
+  font-size: 1.15rem;
+}
+.btn-wow.small { min-width: 140px; height: 42px; padding: 0 20px; font-size: 1.02rem; }
+
+/* anel prateado (agora mais fino: 3px, de 2px até 5px da borda)
+   polígono externo + ponte + polígono interno (buraco) */
+.btn-wow::after,
+.qclose::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -2;
+  /* base #fbf4fa + brilho/sombra para passar a sensação de metal prateado */
+  background: linear-gradient(#ffffff 0%, var(--silver) 28%, #cfc6ce 58%, #a49ca3 74%, var(--silver) 100%);
+  clip-path: polygon(evenodd,
+    /* contorno de fora (a 2px da borda) */
+    10.8px 2px, calc(100% - 10.8px) 2px, calc(100% - 2px) 10.8px, calc(100% - 2px) calc(100% - 10.8px),
+    calc(100% - 10.8px) calc(100% - 2px), 10.8px calc(100% - 2px), 2px calc(100% - 10.8px), 2px 10.8px,
+    10.8px 2px,
+    /* contorno de dentro (a 5px da borda) */
+    12.1px 5px, calc(100% - 12.1px) 5px, calc(100% - 5px) 12.1px, calc(100% - 5px) calc(100% - 12.1px),
+    calc(100% - 12.1px) calc(100% - 5px), 12.1px calc(100% - 5px), 5px calc(100% - 12.1px), 5px 12.1px,
+    12.1px 5px);
+}
+
+/* miolo vermelho: mesmos cantos cortados, paralelos ao anel prateado */
+.btn-wow::before,
+.qclose::before {
+  content: "";
+  position: absolute;
+  inset: 7px;
+  z-index: -1;
+  background: linear-gradient(#8c0a08 0, var(--btn-red) 22%, var(--btn-red) 72%, #5a0403 100%);
+  box-shadow: inset 0 1px 0 rgba(255, 150, 120, 0.45), inset 0 0 8px rgba(0, 0, 0, 0.35);
+  clip-path: polygon(5.9px 0, calc(100% - 5.9px) 0, 100% 5.9px, 100% calc(100% - 5.9px),
+                     calc(100% - 5.9px) 100%, 5.9px 100%, 0 calc(100% - 5.9px), 0 5.9px);
+}
+
+/* botão X do popup: anel na cor dourada do popup */
+.qclose::after { background: var(--frame-gold); }
+
+.btn-wow:hover:not(:disabled),
+.qclose:hover { filter: brightness(1.25); }
+.btn-wow:active:not(:disabled),
+.qclose:active { transform: translateY(2px); filter: brightness(0.9); }
+.btn-wow:disabled { filter: grayscale(1) brightness(0.65); cursor: not-allowed; }
+
+/* =========================================================
+   5) PÁGINAS DO JOGO (fundo novo só nas missões e na recompensa)
+   ========================================================= */
+#game {
+  background:
+    linear-gradient(rgba(3, 4, 14, 0.4), rgba(3, 4, 14, 0.4)) center / cover fixed,
+    url("assets/fundo-missoes.jpg") center / cover no-repeat fixed;
+}
+
+.page {
+  min-height: 100vh;
+  display: grid;
+  place-items: center;
+  padding: 3rem 1.25rem;
+}
+.page-inner { width: min(1400px, 96vw); }
+.page-inner.narrow { width: min(920px, 94vw); }
+
+.section-title {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  justify-content: center;
+  font-size: clamp(1.4rem, 3vw, 1.9rem);
+  color: var(--gold);
+  text-shadow: 0 2px 4px #000;
+  margin: 0 0 1.4rem;
+}
+.section-title::before,
+.section-title::after {
+  content: "";
+  flex: 1;
+  height: 2px;
+  background: linear-gradient(90deg, transparent, var(--gold-border), transparent);
+}
+
+/* =========================================================
+   6) POPUP DA MISSÃO PRINCIPAL (feito 100% em CSS)
+   Camadas: ::before = borda dourada (cantos cortados)
+            ::after  = fundo #26221e (cantos cortados, 3px para dentro)
+   Sem padding: o pergaminho encosta direto na borda fina do popup.
+   ========================================================= */
+.qpanel {
+  position: relative;
+  isolation: isolate;
+  width: min(1080px, 94vw);
+  height: min(calc(100vh - 5rem), 900px);
+  display: grid;
+  grid-template-rows: 82px minmax(0, 1fr) auto;
+  gap: 0;
+  padding: 3px;                                  /* = espessura da borda dourada */
+  filter: drop-shadow(0 20px 36px rgba(0, 0, 0, 0.9));
+}
+.qpanel::before,
+.qpanel::after {
+  content: "";
+  position: absolute;
+  pointer-events: none;
+}
+.qpanel::before {                                /* borda dourada */
+  inset: 0;
+  z-index: -2;
+  background: var(--frame-gold);
+  clip-path: polygon(12px 0, calc(100% - 12px) 0, 100% 12px, 100% calc(100% - 12px),
+                     calc(100% - 12px) 100%, 12px 100%, 0 calc(100% - 12px), 0 12px);
+}
+.qpanel::after {                                 /* fundo da caixa abaixo do título */
+  inset: 3px;
+  z-index: -1;
+  background: #26221e;
+  clip-path: polygon(10.24px 0, calc(100% - 10.24px) 0, 100% 10.24px, 100% calc(100% - 10.24px),
+                     calc(100% - 10.24px) 100%, 10.24px 100%, 0 calc(100% - 10.24px), 0 10.24px);
+}
+
+/* --- cabeçalho: retrato + faixa com o nome + botão X dentro da faixa --- */
+.qhead { position: relative; }
+
+.portrait {
+  position: absolute;
+  left: -14px;
+  top: -14px;
+  z-index: 3;
+  width: 92px;
+  height: 92px;
+  border-radius: 50%;
+  border: 4px solid var(--frame-gold);           /* uma borda só, da cor do popup */
+  overflow: hidden;
+  background: #222;
+}
+.portrait img { width: 100%; height: 100%; object-fit: cover; display: block; }
+
+.qnpc {
+  position: absolute;
+  left: 64px;                                    /* encaixa por baixo do retrato */
+  right: 0;
+  top: 0;
+  height: 44px;
+  display: grid;
+  place-items: center;
+  color: var(--frame-gold);
+  font-size: 1.25rem;
+  background: #24130b;
+  border-bottom: 2px solid var(--frame-gold);    /* só a borda de baixo, na cor do popup */
+  text-shadow: 0 2px 2px #000;
+  /* corta o canto de cima à direita para seguir o canto cortado do popup */
+  clip-path: polygon(0 0, calc(100% - 10.24px) 0, 100% 10.24px, 100% 100%, 0 100%);
+}
+
+/* X dentro da faixa do título, bem rente à borda dela */
+.qclose {
+  position: absolute;
+  right: 3px;
+  top: 3px;
+  z-index: 2;
+  width: 38px;
+  height: 38px;
+  display: grid;
+  place-items: center;
+  font-size: 1.3rem;
+}
+
+/* --- pergaminho com rolagem --- */
+.qscroll {
+  min-height: 0;
+  overflow-y: auto;
+  padding: 20px 22px 24px 30px;
+  color: #1c1108;
+  border: 1px solid #000;                        /* só um filete preto, sem cantos arredondados */
+  border-radius: 0;
+  background: var(--parchment);
+  box-shadow: inset 0 0 22px rgba(110, 60, 15, 0.28);
+}
+
+.qname {
+  margin: 0 0 0.4rem;
+  font-size: clamp(1.6rem, 2.1vw, 2rem);
+  line-height: 1.1;
+  color: #170d06;
+}
+.qtext { margin: 0 0 0.9rem; font-size: 1.2rem; line-height: 1.42; }
+.qsub {
+  margin: 1.1rem 0 0.3rem;
+  font-size: clamp(1.35rem, 1.7vw, 1.6rem);
+  line-height: 1.1;
+  color: #170d06;
+}
+.qchoose { margin: 0 0 0.6rem; font-size: 1.2rem; }
+
+/* --- objetivos (bolinha clicável) --- */
+.objectives { list-style: none; padding: 0; margin: 0.4rem 0 0.8rem; }
+.objective {
+  position: relative;
+  padding: 0.3rem 0 0.3rem 2.5rem;
+  font-size: 1.08rem;
+  line-height: 1.3;
+  cursor: pointer;
+  user-select: none;
+}
+.objective::before {
+  content: "";
+  position: absolute;
+  left: 0.1rem;
+  top: 0.3rem;
+  width: 1.5rem;
+  height: 1.5rem;
+  border: 3px solid #1a1109;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1rem;
+  line-height: 1;
+}
+.objective:hover::before { background: rgba(255, 255, 255, 0.35); }
+.objective.done { color: #5a452b; }
+.objective.done::before { content: "\2714"; color: #1c7a1c; background: rgba(255, 255, 255, 0.45); }
+.objectives.static .objective { cursor: default; }
+.objectives.static .objective:hover::before { background: none; }
+
+/* --- recompensas --- */
+.rewards {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(270px, 1fr));
+  gap: 14px 16px;
+  margin-bottom: 1rem;
+}
+.reward {
+  position: relative;
+  display: grid;
+  grid-template-columns: 72px 1fr;
+  align-items: stretch;
+  border-radius: 6px;
+  cursor: pointer;
+  outline: none;
+  transition: filter 0.15s, box-shadow 0.15s;
+}
+.ricon { display: block; width: 72px; height: 72px; object-fit: contain; z-index: 1; }
+.rname {
+  display: flex;
+  align-items: center;
+  margin-left: -4px;
+  padding: 0 14px;
+  font-size: 1.05rem;
+  line-height: 1.2;
+  color: #f6f0e2;
+  background: var(--reward-bg);
+  border: 2px solid #3a2f1d;
+  border-radius: 0 6px 6px 0;
+  box-shadow: inset 0 0 8px rgba(0, 0, 0, 0.35), inset 0 1px 0 rgba(255, 255, 255, 0.2);
+  text-shadow: 0 1px 2px #000;
+}
+.reward:hover,
+.reward:focus-visible { filter: brightness(1.12); }
+.reward.selected { box-shadow: 0 0 0 3px #f2c230, 0 0 18px rgba(255, 200, 40, 0.8); }
+.reward.claimed { cursor: default; animation: claimed 1s ease-out; }
+@keyframes claimed {
+  0%   { transform: scale(1); }
+  35%  { transform: scale(1.06); filter: brightness(1.5); }
+  100% { transform: scale(1); }
+}
+
+.also {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px 22px;
+  font-size: 1.2rem;
+}
+.money { display: inline-flex; align-items: center; gap: 6px; }
+.money img { height: 28px; width: auto; display: block; }
+.num { font-family: var(--font-title); font-weight: 400; font-size: 1.5rem; line-height: 1; }
+.exp { margin: 0.2rem 0 0; font-size: 1.2rem; }
+
+/* --- barra de botões do rodapé do popup (fina, botões bem rentes) --- */
+.qfoot {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 4px 6px;
+  background: #3a3632;
+  clip-path: polygon(0 0, 100% 0, 100% calc(100% - 10.24px), calc(100% - 10.24px) 100%,
+                     10.24px 100%, 0 calc(100% - 10.24px));
+}
+.quest-btn { min-width: min(220px, 40%); height: 38px; padding: 0 18px; font-size: 1.02rem; }
+
+/* =========================================================
+   7) BARRA DE ROLAGEM ESTILO WOW
+   fundo #060606 · setas em V (#787476) sem fundo/borda ·
+   thumb marrom #523112 arredondada · track rente à thumb com filete marrom
+   ========================================================= */
+.wow-scroll::-webkit-scrollbar { width: 16px; background: #060606; }
+.wow-scroll::-webkit-scrollbar-track {
+  background: #060606;
+  border: 1px solid #523112;
+  border-radius: 100px;
+  margin: 0 3px;
+}
+.wow-scroll::-webkit-scrollbar-thumb {
+  min-height: 40px;
+  background: #523112;
+  border: 1px solid #060606;                     /* deixa a thumb rente ao track */
+  border-radius: 100px;
+}
+.wow-scroll::-webkit-scrollbar-thumb:hover { background: #6a4119; }
+.wow-scroll::-webkit-scrollbar-corner { background: #060606; }
+.wow-scroll::-webkit-scrollbar-button:single-button {
+  display: block;
+  width: 16px;
+  height: 16px;
+  background-color: transparent;                 /* sem fundo */
+  background-repeat: no-repeat;
+  background-position: center;
+  background-size: 12px 12px;
+  border: 0;
+  border-radius: 0;
+}
+.wow-scroll::-webkit-scrollbar-button:single-button:vertical:decrement {
+  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 12'><path d='M1.5 8.5L6 4l4.5 4.5' fill='none' stroke='%23787476' stroke-width='2.4' stroke-linecap='square'/></svg>");
+}
+.wow-scroll::-webkit-scrollbar-button:single-button:vertical:increment {
+  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 12'><path d='M1.5 3.5L6 8l4.5-4.5' fill='none' stroke='%23787476' stroke-width='2.4' stroke-linecap='square'/></svg>");
+}
+
+/* Firefox não aceita o estilo acima; usa uma barra fina simples */
+@supports not selector(::-webkit-scrollbar) {
+  .wow-scroll { scrollbar-color: #523112 #060606; scrollbar-width: thin; }
+}
+
+/* =========================================================
+   8) MISSÃO SECUNDÁRIA: pergaminho largo + muro de tijolos
+   ========================================================= */
+.quest {
+  position: relative;
+  padding: 1.6rem 2.2rem 1.6rem 4.2rem;
+  color: var(--ink);
+  background: var(--parchment);
+  border: 2px solid var(--gold-dark);
+  border-radius: 4px;
+  box-shadow: 0 0 0 2px #0a0703, 0 0 0 4px var(--gold-border),
+              inset 0 0 26px rgba(110, 60, 15, 0.3), 0 10px 30px rgba(0, 0, 0, 0.6);
+}
+.quest-title { font-size: 1.7rem; margin: 0 0 0.5rem; color: #170d06; line-height: 1.1; }
+.quest-sub { font-size: 1.35rem; margin: 0.9rem 0 0.2rem; color: #170d06; line-height: 1.1; }
+.quest-text { margin: 0 0 0.6rem; font-size: 1.1rem; line-height: 1.45; }
+
+.marker {
+  position: absolute;
+  left: 1.3rem;
+  top: 1.3rem;
+  font-family: var(--font-title);
+  font-size: 2.6rem;
+  color: var(--gold);
+  text-shadow: 0 0 10px #ff9d00, 0 2px 3px #000;
+  animation: bob 1.6s ease-in-out infinite;
+}
+.marker.done { color: #7a7a7a; text-shadow: none; animation: none; }
+@keyframes bob { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-6px); } }
+
+.wall {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(34px, 1fr));
+  gap: 3px;
+  margin: 1rem 0;
+  padding: 8px;
+  background: #2a1a10;
+  border: 3px solid #1a0f08;
+  border-radius: 3px;
+}
+.brick {
+  aspect-ratio: 2 / 1;
+  background: linear-gradient(rgba(255, 255, 255, 0.12), rgba(0, 0, 0, 0.25)), #9c4a2a;
+  border-radius: 2px;
+  cursor: pointer;
+  transition: transform 0.15s, filter 0.15s;
+}
+.brick:hover { filter: brightness(1.25); transform: scale(1.15); }
+.brick.gold {
+  background: linear-gradient(135deg, #fff3b0, #e0a800 55%, #a87400);
+  box-shadow: 0 0 8px rgba(255, 209, 0, 0.9);
+  animation: shine 0.6s ease-out;
+  cursor: default;
+}
+@keyframes shine {
+  0%   { transform: scale(1.5); filter: brightness(2); }
+  100% { transform: scale(1);   filter: brightness(1); }
+}
+
+.npc-dialog { padding: 0.8rem 1.2rem; color: var(--text); }
+.npc-dialog strong { color: var(--gold); font-weight: 400; }
+.npc-dialog span.fade { animation: fadeIn 0.5s; }
+@keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+
+.wall-actions {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 1rem;
+  margin-top: 0.9rem;
+  font-size: 0.98rem;
+}
+
+/* =========================================================
+   9) PAINEL DA SENHA
+   ========================================================= */
+.gate {
+  max-width: 640px;
+  margin: 1.5rem auto;
+  padding: 1.5rem 1.7rem;
+  animation: fadeIn 0.8s;
+}
+.gate h3 { margin: 0 0 0.8rem; text-align: center; font-size: 1.5rem; color: var(--gold); }
+.gate p { margin: 0 0 0.8rem; }
+.gate-question { color: var(--gold); }
+.gate-note { font-size: 0.88rem; color: #b8ad98; }
+.gate-form {
+  display: flex;
+  gap: 0.9rem;
+  align-items: center;
+  flex-wrap: wrap;
+  justify-content: center;
+  margin-top: 1rem;
+}
+.gate-form .wow-field { flex: 1; min-width: 220px; width: auto; }
+.gate-error { min-height: 1.4rem; margin: 0.6rem 0 0; text-align: center; color: #ff6b5a; }
+
+/* =========================================================
+   10) BAÚ (feito só com CSS)
+   ========================================================= */
+.chest { position: relative; width: 210px; height: 170px; margin: 2.5rem auto 1.5rem; cursor: pointer; }
+.chest .base,
+.chest .lid {
+  position: absolute;
+  left: 0;
+  width: 100%;
+  background: repeating-linear-gradient(90deg, #6a4018 0 22px, #4a2c10 22px 25px);
+  border: 5px solid var(--gold-border);
+}
+.chest .base { bottom: 0; height: 100px; border-radius: 0 0 10px 10px; }
+.chest .lid {
+  top: 0;
+  height: 80px;
+  border-radius: 100px 100px 0 0 / 70px 70px 0 0;
+  transform-origin: left bottom;
+  transition: transform 0.8s;
+  z-index: 2;
+}
+.chest .lock {
+  position: absolute;
+  left: 50%;
+  top: 70px;
+  width: 30px;
+  height: 36px;
+  transform: translateX(-50%);
+  background: linear-gradient(#ffe27a, #b8860b);
+  border: 3px solid #5a3f00;
+  border-radius: 6px;
+  z-index: 3;
+  transition: opacity 0.4s;
+}
+.chest .glow {
+  position: absolute;
+  left: 50%;
+  top: 40px;
+  width: 140px;
+  height: 140px;
+  transform: translateX(-50%);
+  background: radial-gradient(circle, rgba(255, 220, 90, 0.95), transparent 70%);
+  opacity: 0;
+  transition: opacity 0.8s;
+}
+.chest.locked { filter: grayscale(0.7) brightness(0.65); }
+.chest.unlocked { animation: pulse 1.8s ease-in-out infinite; }
+@keyframes pulse {
+  0%, 100% { filter: drop-shadow(0 0 4px rgba(255, 209, 0, 0.4)); }
+  50%      { filter: drop-shadow(0 0 22px rgba(255, 209, 0, 0.95)); }
+}
+.chest.open .lid { transform: rotate(-38deg) translate(-12px, -14px); }
+.chest.open .lock { opacity: 0; }
+.chest.open .glow { opacity: 1; }
+
+.shake { animation: shake 0.4s; }
+@keyframes shake {
+  0%, 100% { transform: translateX(0); }
+  25%      { transform: translateX(-8px); }
+  75%      { transform: translateX(8px); }
+}
+
+/* =========================================================
+   11) BANNER, TOOLTIP, RASTREADOR
+   ========================================================= */
+.banner {
+  position: fixed;
+  top: 18%;
+  left: 50%;
+  transform: translateX(-50%);
+  text-align: center;
+  width: min(90vw, 700px);
+  padding: 1.1rem;
+  pointer-events: none;
+  opacity: 0;
+  z-index: 400;
+  background: linear-gradient(90deg, transparent, rgba(0, 0, 0, 0.85), transparent);
+}
+.banner h2 {
+  margin: 0;
+  font-size: clamp(1.7rem, 4.5vw, 2.6rem);
+  color: var(--gold);
+  text-shadow: 0 0 18px #ff9d00, 0 3px 4px #000;
+}
+.banner p { margin: 0.3rem 0 0; font-size: 1.02rem; }
+.banner.show { animation: bannerIn 3.2s ease-out; }
+@keyframes bannerIn {
+  0%   { opacity: 0; transform: translateX(-50%) scale(0.7); }
+  12%  { opacity: 1; transform: translateX(-50%) scale(1); }
+  80%  { opacity: 1; }
+  100% { opacity: 0; transform: translateX(-50%) scale(1.05); }
+}
+
+/* Tooltip de item (fixo na tela; o JS move até o mouse) */
+.tooltip {
+  position: fixed;
+  left: 0;
+  top: 0;
+  z-index: 500;
+  width: min(330px, 90vw);
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 10px 14px 12px;
+  pointer-events: none;
+  font-size: 0.95rem;
+  line-height: 1.35;
+  color: #fff;
+  background: rgba(8, 8, 22, 0.97);
+  border: 2px solid #8d8d9a;
+  border-radius: 5px;
+  box-shadow: 0 0 0 1px #000, 0 6px 20px #000;
+}
+.tooltip strong { font-family: var(--font-body); font-weight: 400; font-size: 1.15rem; }
+.tooltip .stat { color: var(--uncommon); }
+.tooltip .flavor { color: #ffd100; margin-top: 0.45rem; }
+.epic      { color: var(--epic); }
+.rare      { color: #3d9bff; }
+.legendary { color: var(--legendary); }
+
+/* Rastreador de missões (menor, para não cobrir o conteúdo) */
+.tracker {
+  position: fixed;
+  top: 0.75rem;
+  right: 0.75rem;
+  z-index: 50;
+  width: 168px;
+  padding: 0.45rem 0.75rem 0.5rem;
+  font-size: 0.76rem;
+  line-height: 1.35;
+  opacity: 0.92;
+}
+.tracker h3 { margin: 0 0 0.25rem; color: var(--gold); font-size: 0.98rem; }
+.tracker ul { list-style: none; margin: 0; padding: 0; }
+.tracker li { padding: 0.1rem 0; }
+.tracker li::before { content: "\25CB  "; color: var(--gold); }
+.tracker li.done { color: #8a8a8a; }
+.tracker li.done::before { content: "\2714  "; color: #4caf50; }
+
+/* =========================================================
+   12) POPUP DA CARTA (com barra de rolagem)
+   ========================================================= */
+.modal {
+  position: fixed;
+  inset: 0;
+  display: none;
+  place-items: center;
+  padding: 1rem;
+  background: rgba(0, 0, 0, 0.82);
+  z-index: 450;
+}
+.modal.open { display: grid; }
+
+.letter {
+  width: min(94vw, 860px);
+  height: min(90vh, 780px);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 1.5rem 1.5rem 1.3rem;
+  color: #1c1108;
+  background: var(--parchment);
+  border: 3px solid var(--gold-dark);
+  border-radius: 6px;
+  box-shadow: 0 0 0 3px #0a0703, 0 0 0 6px var(--gold-border), 0 0 60px rgba(255, 209, 0, 0.4);
+  animation: pop 0.5s ease-out;
+}
+.letter h2 { margin: 0 0 0.7rem; font-size: clamp(1.6rem, 2.6vw, 2.1rem); color: #170d06; text-align: center; }
+.letter-scroll {
+  flex: 1;
+  min-height: 0;
+  width: 100%;
+  overflow-y: auto;
+  padding: 0.4rem 1.2rem 0.8rem 0.4rem;
+  font-size: 1.2rem;
+  line-height: 1.5;
+  border: 3px solid #17110b;
+  border-radius: 4px;
+  background: rgba(255, 240, 205, 0.18);
+}
+.letter-scroll p { margin: 0 0 1rem; padding-left: 1rem; }
+.letter .signature { margin-top: 1.4rem; text-align: right; }
+.letter .btn-wow { margin-top: 1rem; }
+@keyframes pop {
+  from { opacity: 0; transform: scale(0.6) translateY(30px); }
+  to   { opacity: 1; transform: scale(1) translateY(0); }
+}
+
+/* =========================================================
+   13) RODAPÉ, REVEAL E RESPONSIVO
+   ========================================================= */
+footer { text-align: center; padding: 3rem 1rem; color: #b5aa95; font-size: 0.92rem; }
+
+.reveal { opacity: 0; transform: translateY(30px); transition: opacity 0.8s, transform 0.8s; }
+.reveal.visible { opacity: 1; transform: none; }
+
+#game.fade-in { animation: fadeIn 1s ease-out; }
+
+@media (max-width: 1500px) {
+  .tracker { display: none; }
+}
+@media (max-width: 700px) {
+  .quest { padding: 1.5rem 1.1rem 1.5rem 3.2rem; }
+  .marker { left: 0.6rem; font-size: 2.1rem; }
+  .qnpc { font-size: 1rem; }
+  .login-logo { position: static; width: 140px; }
+}

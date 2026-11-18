@@ -1,0 +1,3 @@
+Coloque aqui os arquivos de fonte com estes nomes:
+  morpheus.ttf
+  friz-quadrata.otf

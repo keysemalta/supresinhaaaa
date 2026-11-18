@@ -1,0 +1,238 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>World of Ancraft: The Birthday Chronicles</title>
+
+  <!-- Fontes "plano B" (só aparecem se as fontes do jogo não carregarem) -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600&family=Cormorant+Garamond:wght@500;700&display=swap" rel="stylesheet">
+
+  <link rel="stylesheet" href="style.css">
+</head>
+<body class="locked">
+
+  <!-- Fundo fixo com véu escuro (ver .bg no CSS) -->
+  <div class="bg" aria-hidden="true"></div>
+
+  <!-- Música de fundo: invisível, fica tocando em qualquer seção.
+       Coloque o arquivo em audio/musica.mp3 -->
+  <audio id="bgm" src="audio/musica.mp3" loop preload="auto"></audio>
+
+  <!-- Banner "Missão Concluída" (aparece via JS) -->
+  <div class="banner" id="banner" aria-live="polite">
+    <h2 id="banner-title">Missão Concluída</h2>
+    <p id="banner-sub"></p>
+  </div>
+
+  <!-- Tooltip dos itens (um só, movido pelo JS) -->
+  <div class="tooltip" id="tooltip" hidden></div>
+
+  <!-- Rastreador de missões (só aparece depois do login) -->
+  <aside class="tracker frame" id="tracker" aria-label="Rastreador de missões" hidden>
+    <h3>Missões</h3>
+    <ul>
+      <li data-q="main">Beyond the Horizon</li>
+      <li data-q="side">O Muro de Tijolos</li>
+    </ul>
+  </aside>
+
+  <!-- ================= TELA 1: HOME ================= -->
+  <div class="screen active" id="screen-home">
+    <img class="home-logo" src="assets/logo.png" alt="World of Ancraft: The Birthday Chronicles">
+    <button class="img-btn start-btn" id="start" type="button" aria-label="Start">
+      <img src="assets/btn-start.png" alt="Start">
+    </button>
+  </div>
+
+  <!-- ================= TELA 2: LOGIN ================= -->
+  <div class="screen" id="screen-login">
+    <img class="login-logo" src="assets/logo.png" alt="World of Ancraft">
+
+    <form class="login-form" id="login-form" autocomplete="off">
+      <label class="wow-label" for="account">Account Name</label>
+      <div class="wow-field">
+        <input type="text" id="account" placeholder="Enter your email address" spellcheck="false">
+      </div>
+
+      <label class="wow-label second" for="password">Password</label>
+      <div class="wow-field">
+        <input type="password" id="password">
+      </div>
+
+      <button class="img-btn login-btn" type="submit" aria-label="Login">
+        <img src="assets/btn-login.png" alt="Login">
+      </button>
+
+      <label class="remember">
+        <input type="checkbox" id="remember">
+        <span class="box"></span>
+        <span class="wow-label small">Remember Account Name</span>
+      </label>
+    </form>
+  </div>
+
+  <!-- ================= JOGO (aparece depois do login) ================= -->
+  <div id="game" hidden>
+
+    <!-- ===== MAIN QUEST ===== -->
+    <section class="page" id="main-quest">
+      <article class="qpanel" aria-labelledby="q-title">
+
+        <div class="qhead">
+          <div class="portrait"><img src="assets/hina.png" alt="Hina, the Moon Maiden"></div>
+          <div class="qnpc">Hina, the Moon Maiden</div>
+          <button class="qclose" id="quest-close" type="button" aria-label="Fechar">&#10005;</button>
+        </div>
+
+        <div class="qscroll wow-scroll">
+          <h2 class="qname" id="q-title">Beyond the Horizon</h2>
+
+          <p class="qtext">Não esperava menos de você, Leviarthas. É bom saber que ainda existem guerreiros dispostos a enfrentar desafios e seguir seus próprios caminhos. Tenho algumas recompensas que lhe pertencem. Quanto ao que vem pela frente... bem, espero que já esteja pensando em sua próxima conquista, pois Azeroth nunca fica sem desafios, e tenho a impressão de que você ainda está longe de escrever seu último capítulo.</p>
+
+          <h3 class="qsub">Quest Objectives</h3>
+          <ul class="objectives" id="main-objectives">
+            <li class="objective">Conceder à criadora desta missão um abraço bem apertado.</li>
+            <li class="objective">Formar uma dupla e completar uma missão juntos hoje.</li>
+            <li class="objective">Reconhecer uma conquista que seu eu do passado ficaria orgulhoso de ver.</li>
+            <li class="objective">Forjar uma missão à altura de sua ambição e cumpri-la antes do próximo aniversário, demonstrando ser digno de figurar entre as lendas de Azeroth e de ostentar o lendário título de Senhor dos Escaravelhos (Scarab Lord).</li>
+          </ul>
+
+          <h3 class="qsub">Rewards</h3>
+          <p class="qchoose">Choose your reward:</p>
+
+          <div class="rewards" id="rewards">
+            <div class="reward" data-item="lamina" tabindex="0">
+              <img class="ricon" src="assets/icon-espadas.png" alt="">
+              <span class="rname">Lâmina da Determinação</span>
+            </div>
+            <div class="reward" data-item="essencia" tabindex="0">
+              <img class="ricon" src="assets/icon-pocao.png" alt="">
+              <span class="rname">Essência do Coração Gentil</span>
+            </div>
+            <div class="reward" data-item="gema" tabindex="0">
+              <img class="ricon" src="assets/icon-gema.png" alt="">
+              <span class="rname">Gema do Encanto Eterno</span>
+            </div>
+          </div>
+
+          <div class="also">
+            <span>You will also receive:</span>
+            <span class="money"><b class="num">15</b><img src="assets/coin-gold.png" alt="ouro"></span>
+            <span class="money"><b class="num">11</b><img src="assets/coin-silver.png" alt="prata"></span>
+          </div>
+          <p class="exp">Experience: <b class="num">99,999</b> de felicidade</p>
+        </div>
+
+        <div class="qfoot">
+          <button class="btn-wow quest-btn" id="main-complete" type="button" disabled>Complete Quest</button>
+          <button class="btn-wow quest-btn" id="quest-cancel" type="button">Cancel</button>
+        </div>
+      </article>
+    </section>
+
+    <!-- ===== SIDE QUEST: MURO DE TIJOLOS ===== -->
+    <section class="page reveal" id="side-quest">
+      <div class="page-inner">
+        <h2 class="section-title">Missão Secundária</h2>
+
+        <article class="quest">
+          <span class="marker" data-marker="side" title="Missão disponível">!</span>
+          <h3 class="quest-title">O Muro de Tijolos</h3>
+
+          <p class="quest-text">
+            Uma antiga lenda conta que, toda vez que o herói falava mal de si
+            mesmo, um tijolo era lançado em sua direção. Tantas vezes isso
+            aconteceu que um enorme muro se ergueu: mais de <strong>300 tijolos</strong>.
+            Mas um alquimista descobriu algo: a pedra pode virar ouro. Cada tijolo
+            que você clicar será <em>transmutado</em>.
+          </p>
+
+          <h4 class="quest-sub">Objetivos</h4>
+          <ul class="objectives static">
+            <li class="objective" id="brick-objective">Transmutar tijolos em ouro (0/10)</li>
+          </ul>
+
+          <div class="wall" id="wall" aria-label="Muro de tijolos"></div>
+
+          <div class="npc-dialog frame">
+            <strong>Alquimista:</strong>
+            <span id="brick-phrase">Clique em um tijolo para começar...</span>
+          </div>
+
+          <div class="wall-actions">
+            <span id="brick-count">Tijolos transmutados: 0 / 300</span>
+            <button class="btn-wow small" id="brick-all" type="button">Transmutar todos</button>
+          </div>
+        </article>
+      </div>
+    </section>
+
+    <!-- ===== FINAL: BAÚ E CARTA ===== -->
+    <section class="page reveal" id="final">
+      <div class="page-inner narrow">
+        <h2 class="section-title">A Recompensa</h2>
+        <p class="center-text" id="chest-hint">O baú está trancado. Conclua as missões para abri-lo.</p>
+
+        <!-- Painel da senha: escondido até as duas missões serem concluídas -->
+        <div class="gate frame" id="gate" hidden>
+          <h3>A Runa Selada</h3>
+          <p>Dizem que os melhores companheiros de aventura não precisam de grandes promessas. Às vezes, basta saber que, se um partir, o outro irá junto.</p>
+          <p>Houve uma época em que alguém recebeu um apelido um tanto curioso por causa disso. Um apelido que acabou se tornando mais do que uma simples forma de chamar alguém.</p>
+          <p>Talvez você ainda se lembre dele.</p>
+          <p class="gate-question">Qual era o apelido daquele pequeno companheiro que nunca ficava para trás?</p>
+          <p class="gate-note">(Esse apelido foi dado no dia 23 de novembro.)</p>
+
+          <form class="gate-form" id="gate-form" autocomplete="off">
+            <div class="wow-field">
+              <input type="text" id="gate-input" placeholder="Digite a senha..." maxlength="30" aria-label="Senha do baú">
+            </div>
+            <button type="submit" class="btn-wow small">Pronunciar</button>
+          </form>
+          <p class="gate-error" id="gate-error" aria-live="polite"></p>
+        </div>
+
+        <div class="chest locked" id="chest" role="button" tabindex="0" aria-label="Baú do tesouro">
+          <div class="glow"></div>
+          <div class="lid"></div>
+          <div class="base"></div>
+          <div class="lock"></div>
+        </div>
+
+        <div class="center">
+          <button class="btn-wow" id="claim" type="button">Reivindicar Recompensa</button>
+        </div>
+      </div>
+    </section>
+
+    <footer>
+      <p>Feito com amor para Andrey &mdash; Feliz aniversário!</p>
+    </footer>
+  </div>
+
+  <!-- ================= POPUP DA CARTA ================= -->
+  <div class="modal" id="letter-modal" role="dialog" aria-modal="true" aria-labelledby="letter-title">
+    <div class="letter">
+      <h2 id="letter-title">Feliz vida, Andrey!</h2>
+
+      <!-- Tudo dentro deste div rola com a barra do WoW. Escreva a carta à vontade. -->
+      <div class="letter-scroll wow-scroll">
+        <p>Para o meu chaveirinho,<br><br>
+        Talvez você nem se lembre mais do motivo desse apelido. Talvez ele tenha se perdido em meio a tantas outras coisas que aconteceram depois. Mas eu me lembro. Você era literalmente como um chaveiro. Se eu fosse, você ia. E por mais simples que aquela frase parecesse, você me disse que tinha sido uma das coisas mais fofas que alguém já tinha falado para você e por isso esse apelido acabou se tornando muito especial para mim. Entre tantos outros apelidos, brincadeiras e versões do jungle altamente alguma coisa, chaveirinho sempre vai ter um lugar diferente no meu coração. Não sei se ele ainda significa a mesma coisa para você, mas queria que, pelo menos hoje, você se lembrasse de onde veio e do carinho que existia naquela mensagem.</p>
+        <p>Eu não tenho palavras para descrever o quanto sou grata por você ter aparecido na minha vida. Você chegou e deixou o preto no branco cheio de cor. Com suas brincadeiras, com seu jeitinho, com seu carinho, com todo o seu amor e com esse seu sorriso lindo.<br> 
+        Mesmo com nossos desentendimentos no dia a dia eu me sinto tão em casa quando estou com você que quase não consigo acreditar quando penso que meses atrás estávamos distantes fisicamente e nem sonhávamos que um dia chegaríamos a esse ponto. E sou eternamente grata por isso! Você é e sempre será uma das pessoas mais importantes e especiais da minha vida, Andrey. E é por todos esses motivos e tantos outros, como sua bondade, seu jeito sonhador e brincalhão, que vou sempre torcer pelo seu sucesso, sempre celebrar a sua vida e ser extremamente grata por ela. Sou sua fã número 1 de carteirinha!!!! Então sempre siga seus sonhos e desejos, eu vou estar torcendo alegremente para que realize cada um deles e seja muito feliz vivendo todos eles. Espero que você nunca se esqueça do quanto é admirado por mim e do quanto me orgulho da pessoa que você é e de tudo aquilo que ainda vai conquistar.</p>
+        <p>E por fim, parabéns para a minha pessoa favorita no mundo todo! Sorte a minha comemorar sua vida com você, fofinho, sorte a minha. 
+        Muita saúde, muita paz, muito amor, muita felicidade, muito sucesso, muito dinheiro, muita paciência e muito tudo pra viver essa vida por muito tempo!!!<br><br>
+        Ti mo desde outras vidas, morindo! E em toda a sua essência. Obrigada por existir. 🤍</p>
+        <p class="signature">&mdash; Com amor, Keyse.</p>
+      </div>
+
+      <button class="btn-wow" id="letter-close" type="button">Guardar na Bolsa</button>
+    </div>
+  </div>
+
+  <script src="script.js"></script>
+</body>
+</html>
